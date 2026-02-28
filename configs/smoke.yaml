@@ -1,0 +1,42 @@
+run_name: smoke_deberta_base_cv2
+seed: 42
+
+paths:
+  data_dir: ../data
+  train_csv: ../data/train_df.csv
+  dev_csv: ../data/dev_df_2.csv
+  test_tsv: null
+  category_labels_train_csv: null
+  category_labels_dev_csv: null
+  span_categories_tsv: null
+  span_min_annotators: null
+  output_dir: ../outputs
+
+model:
+  backbone_name: microsoft/deberta-v3-base
+  max_length: 128
+  pooling: cls
+  dropout: 0.1
+
+train:
+  folds: 2
+  epochs: 1
+  batch_size: 8
+  grad_accum_steps: 1
+  lr: 3.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  mixed_precision: bf16
+
+loss:
+  use_pos_weight: true
+  aux_lambda: 0.0
+  aux_on_positives_only: true
+  use_label_scale_weights: false
+
+inference:
+  threshold_search_step: 0.02
+
+logging:
+  log_every_steps: 50

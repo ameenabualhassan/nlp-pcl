@@ -1,0 +1,51 @@
+run_name: deberta_mtl_cv5_lam_sweep_1
+seed: 42
+
+paths:
+  data_dir: ../data
+  train_csv: ../data/train_df.csv
+  dev_csv: ../data/dev_df_2.csv
+  test_tsv: ../data/task4_test.tsv  # optional; if missing, set to null
+
+  # Auxiliary supervision options:
+  # Option A (preferred): SemEval-style per-paragraph 7-dim multi-labels
+  category_labels_train_csv: ../data/raw/train_semeval_parids-labels.csv  # optional
+  category_labels_dev_csv: ../data/raw/dev_semeval_parids-labels.csv      # optional
+
+  # Option B: span-level categories; if provided and (A) is missing, we aggregate spans -> paragraph multi-hot
+  span_categories_tsv: ../data/raw/dontpatronizeme_categories.tsv         # optional
+  span_min_annotators: 2  # optional; set to null to disable filtering
+
+  output_dir: ../outputs
+
+model:
+  backbone_name: microsoft/deberta-v3-large
+  max_length: 192
+  pooling: cls  # cls | mean
+  dropout: 0.1
+
+train:
+  folds: 5
+  epochs: 5
+  batch_size: 8
+  grad_accum_steps: 2
+  lr: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  mixed_precision: bf16  # bf16 | fp16 | no
+
+loss:
+  use_pos_weight: true
+  aux_lambda: 0.05        # QUICK GAIN RUN A: try 0.05, then 0.1, then 0.2
+  aux_on_positives_only: true
+
+  use_label_scale_weights: false
+  label_scale_weights: {0: 1.0, 1: 0.6, 2: 0.7, 3: 0.9, 4: 1.0}
+
+inference:
+  threshold_search_step: 0.01
+  ensemble: mean
+
+logging:
+  log_every_steps: 50
